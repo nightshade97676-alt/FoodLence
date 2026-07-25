@@ -1,45 +1,43 @@
+import base64
 import io
 import json
 import os
 import traceback
 
-from google import genai
-from google.genai import types
+from openai import OpenAI
 from PIL import Image
 
 LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr": "French"}
 
-# As of mid-2026 all gemini-1.5-* and gemini-2.0-* model IDs have been shut
-# down by Google (they now return 404). "gemini-flash-latest" is a stable
-# alias that always points at Google's current default Flash model, so it's
-# the safest first choice — with pinned versions as fallbacks in case the
-# alias itself is ever retired.
-MODEL_CANDIDATES = ["gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash"]
+# xAI's API is OpenAI-compatible, so the standard `openai` client works
+# against it — just point base_url at api.x.ai and use an xAI API key.
+# grok-4.3 is kept as a fallback in case grok-4.5 is ever unavailable on
+# a given account/region.
+MODEL_CANDIDATES = ["grok-4.5", "grok-4.3"]
 
 
 class OCRService:
     def __init__(self, api_key: str = None):
-        # No hardcoded fallback key — a key pasted into source (or into a
-        # chat, or a commit) is a leaked key. Require it as an environment
-        # variable instead, set only in Render's dashboard / your local
-        # shell, never committed to the repo.
-        api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        # No hardcoded fallback key — same reasoning as before: a key baked
+        # into source is a key that eventually leaks (chat, repo, screenshot).
+        # Require it as an environment variable instead.
+        api_key = api_key or os.environ.get("XAI_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "GEMINI_API_KEY is not set. Set it as an environment variable "
+                "XAI_API_KEY is not set. Set it as an environment variable "
                 "(Render: Dashboard -> your service -> Environment) rather than "
-                "hardcoding it in source."
+                "hardcoding it in source. Get a key at https://console.x.ai"
             )
-        # 20s request timeout so a bad connection can't hang a worker forever.
-        self.client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=20_000))
+        self.client = OpenAI(api_key=api_key, base_url="https://api.x.ai/v1", timeout=30.0)
         self.models = MODEL_CANDIDATES
 
-    def analyze_with_gemini(self, image_bytes: bytes, user_profile: dict, lang: str = "en") -> dict:
+    def analyze_image(self, image_bytes: bytes, user_profile: dict, lang: str = "en") -> dict:
         # Re-encode through PIL to normalize format/orientation before sending.
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         buf = io.BytesIO()
         image.save(buf, format="JPEG")
-        img_bytes = buf.getvalue()
+        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        data_url = f"data:image/jpeg;base64,{img_b64}"
 
         target_lang = LANGUAGES.get(lang, "English")
         active = [k.replace("_", " ").title() for k, v in user_profile.items()
@@ -72,15 +70,19 @@ Rules:
         errors = []
         for model_name in self.models:
             try:
-                response = self.client.models.generate_content(
+                response = self.client.chat.completions.create(
                     model=model_name,
-                    contents=[
-                        prompt,
-                        types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg"),
-                    ],
-                    config=types.GenerateContentConfig(response_mime_type="application/json"),
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": data_url}},
+                        ],
+                    }],
+                    response_format={"type": "json_object"},
                 )
-                data = json.loads(response.text.strip())
+                raw = response.choices[0].message.content.strip()
+                data = json.loads(raw)
                 return self._normalize(data)
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"{model_name}: {exc}")
@@ -110,6 +112,6 @@ Rules:
             "detected_ingredients": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "detected_ingredients_translated": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "safer_alternatives": [
-                f"Gemini API call failed, showing placeholder data. Last error: {detail}",
+                f"Grok API call failed, showing placeholder data. Last error: {detail}",
             ],
         }
