@@ -9,11 +9,6 @@ from PIL import Image
 
 LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr": "French"}
 
-# NOTE: hardcoding an API key in source is not recommended for anything beyond
-# local testing — set the GEMINI_API_KEY environment variable instead so the
-# key never ends up committed to source control or shared files.
-DEFAULT_API_KEY = "AQ.Ab8RN6Lp8zSILnpQXojcZnUPubNqk6HAlCUApB3tNj_iq40DXA"
-
 # As of mid-2026 all gemini-1.5-* and gemini-2.0-* model IDs have been shut
 # down by Google (they now return 404). "gemini-flash-latest" is a stable
 # alias that always points at Google's current default Flash model, so it's
@@ -24,7 +19,17 @@ MODEL_CANDIDATES = ["gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash
 
 class OCRService:
     def __init__(self, api_key: str = None):
-        api_key = api_key or os.environ.get("GEMINI_API_KEY", DEFAULT_API_KEY)
+        # No hardcoded fallback key — a key pasted into source (or into a
+        # chat, or a commit) is a leaked key. Require it as an environment
+        # variable instead, set only in Render's dashboard / your local
+        # shell, never committed to the repo.
+        api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError(
+                "GEMINI_API_KEY is not set. Set it as an environment variable "
+                "(Render: Dashboard -> your service -> Environment) rather than "
+                "hardcoding it in source."
+            )
         # 20s request timeout so a bad connection can't hang a worker forever.
         self.client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=20_000))
         self.models = MODEL_CANDIDATES
