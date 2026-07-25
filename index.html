@@ -57,6 +57,11 @@
       </div>
     </header>
 
+    <div id="inAppWarning" class="hidden mb-4 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+      <strong>Camera/upload may not work here.</strong> You appear to be viewing this inside an app's built-in browser (like Discord, Instagram, or similar), which often blocks the real photo picker and forces the camera instead — that's a limitation of that app, not this page. Tap the ⋯ or share icon and choose <strong>"Open in Safari"</strong> or <strong>"Open in Chrome"</strong> for it to work correctly.
+      <button onclick="copyPageUrl()" class="block mt-2 underline font-semibold">Copy this page's link</button>
+    </div>
+
     <div class="mb-6">
       <h2 class="text-3xl font-extrabold mb-2" data-i18n="heroTitle">Know your food instantly.</h2>
       <p class="text-slate-500 dark:text-slate-400 text-sm" data-i18n="heroSub">Scan ingredient panels to verify compatibility with
@@ -174,7 +179,7 @@
     // so nothing breaks if the backend URL ever changes.
     const API_BASE = window.location.hostname.endsWith('onrender.com')
       ? ''
-      : 'https://foodlence-3.onrender.com';
+      : 'https://foodlence-5.onrender.com';
 
     // ---- 24 profile fields grouped for rendering ----
     const DIETARY = ["vegan", "vegetarian", "keto", "paleo", "halal", "kosher", "gluten_free", "dairy_free"];
@@ -301,14 +306,37 @@
     function showProfileScreen() { showPage('profileScreenView'); }
     function showHomeScreen() { showPage('homeScreenView'); }
 
-    // Whichever of the two inputs (camera or gallery) last got a file wins.
-    // Tracked explicitly rather than re-reading .files off a specific
-    // element, since the user might use either button.
     console.log(
       "%c FoodLens index.html — camera/gallery-split build — v2026-07-26b ",
       "background:#2C6E63; color:#fff; font-weight:bold; padding:4px 8px; border-radius:4px;"
     );
     console.log("If you do NOT see this line, the browser is showing a cached or different file than the one just deployed.");
+
+    // In-app browsers (Discord, Instagram, Facebook, Line, etc.) run a
+    // stripped-down WebView that frequently can't show the real photo
+    // picker and silently falls back to camera-only for any file input —
+    // regardless of the capture attribute. No amount of HTML/JS here can
+    // fix that; the fix is opening the page in a real browser instead.
+    // This heuristic can't be 100% — some in-app browsers hide their
+    // signature well — but it catches the common cases.
+    (function detectInAppBrowser() {
+      const ua = navigator.userAgent || "";
+      const isKnownInAppUA = /FBAN|FBAV|Instagram|Line\/|Twitter|MicroMessenger|TikTok/i.test(ua);
+      const isAndroidGenericWebView = /Android/.test(ua) && /; wv\)/.test(ua);
+      const isIOSNonSafariWebView = /iPhone|iPad|iPod/.test(ua) && !/Safari/.test(ua);
+      if (isKnownInAppUA || isAndroidGenericWebView || isIOSNonSafariWebView) {
+        console.warn("[FoodLens] Possible in-app browser detected — camera/upload may be limited.", ua);
+        document.getElementById('inAppWarning').classList.remove('hidden');
+      }
+    })();
+
+    function copyPageUrl() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert(currentLang === 'ta' ? "இணைப்பு நகலெடுக்கப்பட்டது!" : "Link copied! Paste it into Safari or Chrome.");
+      }).catch(() => {
+        prompt(currentLang === 'ta' ? "இந்த இணைப்பை நகலெடுக்கவும்:" : "Copy this link:", window.location.href);
+      });
+    }
 
     let selectedFile = null;
 
