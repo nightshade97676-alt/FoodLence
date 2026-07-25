@@ -9,27 +9,37 @@ from PIL import Image
 
 LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr": "French"}
 
-# xAI's API is OpenAI-compatible, so the standard `openai` client works
-# against it — just point base_url at api.x.ai and use an xAI API key.
-# grok-4.3 is kept as a fallback in case grok-4.5 is ever unavailable on
-# a given account/region.
-MODEL_CANDIDATES = ["grok-4.5", "grok-4.3"]
+# Groq's OpenAI-compatible endpoint. Groq's vision-model lineup changes
+# often — meta-llama/llama-4-scout-17b-16e-instruct and
+# meta-llama/llama-4-maverick-17b-128e-instruct (the two models most
+# tutorials reference) were BOTH deprecated by Groq earlier in 2026.
+# qwen/qwen3.6-27b is the current vision-capable model as of mid-2026.
+# If this ever starts failing, check console.groq.com/docs/model for
+# whatever Groq's current vision model is and swap it in here.
+MODEL_CANDIDATES = ["qwen/qwen3.6-27b"]
 
 
 class OCRService:
     def __init__(self, api_key: str = None):
-        # No hardcoded fallback key — same reasoning as before: a key baked
-        # into source is a key that eventually leaks (chat, repo, screenshot).
-        # Require it as an environment variable instead.
-        api_key = api_key or os.environ.get("XAI_API_KEY")
+        # No hardcoded fallback key — same reasoning as every other provider
+        # in this project: a key baked into source is a key that leaks.
+        api_key = api_key or os.environ.get("GROQ_API_KEY")
+        if api_key:
+            api_key = api_key.strip()  # guards against a stray copy-paste space/newline
         if not api_key:
             raise RuntimeError(
-                "XAI_API_KEY is not set. Set it as an environment variable "
+                "GROQ_API_KEY is not set. Set it as an environment variable "
                 "(Render: Dashboard -> your service -> Environment) rather than "
-                "hardcoding it in source. Get a key at https://console.x.ai"
+                "hardcoding it in source. Get a free key at https://console.groq.com/keys"
             )
-        self.client = OpenAI(api_key=api_key, base_url="https://api.x.ai/v1", timeout=30.0)
+        self.client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1", timeout=30.0)
         self.models = MODEL_CANDIDATES
+
+        # Safe diagnostic: confirms what actually got loaded without ever
+        # printing the real secret — check your host's logs after a deploy
+        # to verify the key isn't truncated or malformed.
+        masked = f"{api_key[:4]}...{api_key[-4:]} (length {len(api_key)})" if len(api_key) > 8 else "(too short to mask safely)"
+        print(f"[OCRService] Loaded GROQ_API_KEY: {masked}")
 
     def analyze_image(self, image_bytes: bytes, user_profile: dict, lang: str = "en") -> dict:
         # Re-encode through PIL to normalize format/orientation before sending.
@@ -112,6 +122,6 @@ Rules:
             "detected_ingredients": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "detected_ingredients_translated": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "safer_alternatives": [
-                f"Grok API call failed, showing placeholder data. Last error: {detail}",
+                f"Groq API call failed, showing placeholder data. Last error: {detail}",
             ],
         }
