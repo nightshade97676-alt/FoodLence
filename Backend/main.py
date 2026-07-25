@@ -29,7 +29,7 @@ app = FastAPI(title="Food Lens")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # no cookies/auth used — wildcard origin + credentials is invalid per CORS spec
     allow_methods=["*"],
     allow_headers=["*"],
 )
