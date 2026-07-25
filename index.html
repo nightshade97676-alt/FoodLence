@@ -48,8 +48,7 @@
         <h1 class="text-xl font-bold">FOODLENS</h1>
       </div>
       <div class="flex items-center gap-3">
-        <div class="flex border border-slate-200 dark:border-brand-border rounded-xl overflow-hidden text-xs font-bold"
-          id="langToggle">
+        <div class="flex border border-slate-200 dark:border-brand-border rounded-xl overflow-hidden text-xs font-bold" id="langToggle">
           <button data-lang="en" class="lang-btn px-2.5 py-1 bg-brand-accent text-white">EN</button>
           <button data-lang="ta" class="lang-btn px-2.5 py-1 text-slate-500 dark:text-slate-400">TA</button>
         </div>
@@ -59,8 +58,7 @@
 
     <div class="mb-6">
       <h2 class="text-3xl font-extrabold mb-2" data-i18n="heroTitle">Know your food instantly.</h2>
-      <p class="text-slate-500 dark:text-slate-400 text-sm" data-i18n="heroSub">Scan ingredient panels to verify
-        compatibility with
+      <p class="text-slate-500 dark:text-slate-400 text-sm" data-i18n="heroSub">Scan ingredient panels to verify compatibility with
         allergies, diets, and metabolic conditions.</p>
     </div>
 
@@ -68,8 +66,7 @@
       class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-6 text-center relative mb-4 cursor-pointer">
       <p class="text-4xl mb-2 text-slate-400 dark:text-slate-500">📷</p>
       <p class="font-bold" data-i18n="dropLabel">Scan Ingredient Label</p>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="dropSub">Tap to take a picture or upload a
-        photo</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="dropSub">Tap to take a picture or upload a photo</p>
       <input type="file" id="imageInput" class="hidden" accept="image/*" capture="environment" onchange="previewFile()">
     </div>
 
@@ -79,18 +76,15 @@
 
     <div class="grid grid-cols-2 gap-3 mb-4">
       <button onclick="document.getElementById('imageInput').click()"
-        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl"
-        data-i18n="takePicture">Take
+        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl" data-i18n="takePicture">Take
         Picture</button>
       <button onclick="document.getElementById('imageInput').click()"
-        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl"
-        data-i18n="uploadFile">Upload
+        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl" data-i18n="uploadFile">Upload
         File</button>
     </div>
 
     <button onclick="showProfileScreen()"
-      class="w-full bg-brand-accent hover:bg-[#255a51] text-white font-bold py-3 rounded-2xl"
-      data-i18n="buildProfile">Build Profile &amp; Scan
+      class="w-full bg-brand-accent hover:bg-[#255a51] text-white font-bold py-3 rounded-2xl" data-i18n="buildProfile">Build Profile &amp; Scan
       →</button>
   </div>
 
@@ -102,8 +96,7 @@
     </header>
 
     <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-5 mb-5">
-      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="userMetrics">User Metrics
-      </h2>
+      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="userMetrics">User Metrics</h2>
       <div class="grid grid-cols-2 gap-3">
         <input type="number" id="age" placeholder="Age"
           class="bg-slate-50 dark:bg-brand-dark border border-slate-200 dark:border-brand-border rounded-2xl p-3 text-sm text-slate-900 dark:text-white placeholder-slate-400">
@@ -113,26 +106,22 @@
     </section>
 
     <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-5 mb-5">
-      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="dietary">Dietary
-        Preferences</h2>
+      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="dietary">Dietary Preferences</h2>
       <div class="space-y-2" id="dietaryGroup"></div>
     </section>
 
     <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-5 mb-5">
-      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="allergies">Food Allergies
-      </h2>
+      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="allergies">Food Allergies</h2>
       <div class="space-y-2" id="allergyGroup"></div>
     </section>
 
     <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-5 mb-5">
-      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="health">Medical
-        Conditions</h2>
+      <h2 class="text-xs text-brand-accent font-bold uppercase tracking-wider mb-3" data-i18n="health">Medical Conditions</h2>
       <div class="space-y-2" id="healthGroup"></div>
     </section>
 
     <button onclick="analyzeFood()" id="analyzeBtn"
-      class="w-full mt-2 bg-brand-accent hover:bg-[#255a51] text-white font-bold py-3 rounded-2xl"
-      data-i18n="analyzeBtn">ANALYZE MY
+      class="w-full mt-2 bg-brand-accent hover:bg-[#255a51] text-white font-bold py-3 rounded-2xl" data-i18n="analyzeBtn">ANALYZE MY
       MEAL</button>
   </div>
 
@@ -151,24 +140,20 @@
         <p id="resGrade" class="text-xs text-slate-500 dark:text-slate-400 mt-1"></p>
       </div>
       <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border p-5 rounded-3xl">
-        <h3 class="font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3"
-          data-i18n="ingredientsLabel">Ingredients</h3>
+        <h3 class="font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3" data-i18n="ingredientsLabel">Ingredients</h3>
         <div id="resIngredientsPills" class="flex flex-wrap gap-2"></div>
       </section>
       <section class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border p-5 rounded-3xl">
-        <h3 class="font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3"
-          data-i18n="safetyAnalysis">Safety Analysis
+        <h3 class="font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3" data-i18n="safetyAnalysis">Safety Analysis
         </h3>
         <ul id="resRecsList" class="text-xs space-y-2 list-disc pl-4"></ul>
       </section>
       <section class="bg-white dark:bg-brand-card border border-brand-accent/30 p-5 rounded-3xl">
-        <h3 class="font-bold text-xs text-brand-accent uppercase tracking-wider mb-2" data-i18n="alternativesLabel">
-          Safer Alternatives</h3>
+        <h3 class="font-bold text-xs text-brand-accent uppercase tracking-wider mb-2" data-i18n="alternativesLabel">Safer Alternatives</h3>
         <ul id="resAlternativesList" class="text-xs space-y-2 font-semibold list-disc pl-4"></ul>
       </section>
       <button onclick="showHomeScreen()"
-        class="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-4 rounded-2xl"
-        data-i18n="scanAnother">Scan
+        class="w-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-4 rounded-2xl" data-i18n="scanAnother">Scan
         Another Product</button>
     </div>
   </div>
