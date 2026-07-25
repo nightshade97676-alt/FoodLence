@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD MARKER: camera/gallery-split v2026-07-26b — if you don't see this comment in "View Page Source", you're looking at a stale/cached file. -->
+<!-- BUILD MARKER: unified single-input photo picker v2026-07-26c — if you don't see this comment in "View Page Source", you're looking at a stale/cached file. -->
 <html lang="en" class="dark">
 
 <head>
@@ -68,33 +68,26 @@
         allergies, diets, and metabolic conditions.</p>
     </div>
 
-    <div onclick="document.getElementById('imageInputCamera').click()"
+    <div onclick="document.getElementById('imageInput').click()"
       class="bg-white dark:bg-brand-card border border-slate-200 dark:border-brand-border rounded-3xl p-6 text-center relative mb-4 cursor-pointer">
       <p class="text-4xl mb-2 text-slate-400 dark:text-slate-500">📷</p>
       <p class="font-bold" data-i18n="dropLabel">Scan Ingredient Label</p>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="dropSub">Tap to take a picture or upload a photo</p>
-      <!-- Two separate inputs: capture="environment" forces the camera app
-           directly (Android especially), so a single shared input can't
-           also be used for gallery picking. imageInputGallery deliberately
-           has NO capture attribute, which is what lets the browser offer
-           its normal photo library / file chooser instead of jumping
-           straight to the camera. -->
-      <input type="file" id="imageInputCamera" class="hidden" accept="image/*" capture="environment" onchange="handleFileSelected(event)">
-      <input type="file" id="imageInputGallery" class="hidden" accept="image/*" onchange="handleFileSelected(event)">
+      <!-- Deliberately ONE input with no capture attribute. Without
+           capture, the OS's native picker shows BOTH "Take Photo" and
+           "Choose from Library" in one menu on iOS Safari and Android
+           Chrome — no need to juggle two separate hidden inputs, and
+           nothing for a picky WebView to get inconsistent about. -->
+      <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="handleFileSelected(event)">
     </div>
 
     <div id="previewContainer" class="hidden my-4">
       <img id="imagePreview" class="w-full h-48 object-cover rounded-2xl border-2 border-brand-accent">
     </div>
 
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <button onclick="document.getElementById('imageInputCamera').click()"
-        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl" data-i18n="takePicture">Take
-        Picture</button>
-      <button onclick="document.getElementById('imageInputGallery').click()"
-        class="bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl" data-i18n="uploadFile">Upload
-        File</button>
-    </div>
+    <button onclick="document.getElementById('imageInput').click()"
+      class="w-full mb-4 bg-slate-100 dark:bg-gray-800 text-brand-accent border-2 border-slate-200 dark:border-gray-700 font-bold py-3 rounded-2xl" data-i18n="choosePhoto">Choose Photo</button>
+
 
 
     <button onclick="showProfileScreen()"
@@ -194,8 +187,7 @@
         heroSub: "Scan ingredient panels to verify compatibility with allergies, diets, and metabolic conditions.",
         dropLabel: "Scan Ingredient Label",
         dropSub: "Tap to take a picture or upload a photo",
-        takePicture: "Take Picture",
-        uploadFile: "Upload File",
+        choosePhoto: "Choose Photo",
         buildProfile: "Build Profile & Scan →",
         profileTitle: "Configure Health Profile",
         userMetrics: "User Metrics",
@@ -223,8 +215,7 @@
         heroSub: "ஒவ்வாமை, உணவு முறை மற்றும் உடல்நல நிலைமைகளுக்கு ஏற்றதா எனச் சரிபார்க்க பொருட்கள் லேபிளை ஸ்கேன் செய்யுங்கள்.",
         dropLabel: "பொருட்கள் லேபிளை ஸ்கேன் செய்யவும்",
         dropSub: "படம் எடுக்க அல்லது பதிவேற்ற தட்டவும்",
-        takePicture: "படம் எடு",
-        uploadFile: "கோப்பை பதிவேற்று",
+        choosePhoto: "புகைப்படத்தைத் தேர்ந்தெடு",
         buildProfile: "சுயவிவரத்தை உருவாக்கி ஸ்கேன் செய் →",
         profileTitle: "சுகாதார சுயவிவரத்தை அமைக்கவும்",
         userMetrics: "பயனர் அளவீடுகள்",
@@ -307,7 +298,7 @@
     function showHomeScreen() { showPage('homeScreenView'); }
 
     console.log(
-      "%c FoodLens index.html — camera/gallery-split build — v2026-07-26b ",
+      "%c FoodLens index.html — unified single-input photo picker — v2026-07-26c ",
       "background:#2C6E63; color:#fff; font-weight:bold; padding:4px 8px; border-radius:4px;"
     );
     console.log("If you do NOT see this line, the browser is showing a cached or different file than the one just deployed.");
