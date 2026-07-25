@@ -103,6 +103,12 @@ Rules:
                             {"type": "image_url", "image_url": {"url": data_url}},
                         ],
                     }],
+                    # qwen/qwen3.6-27b is a reasoning model — without this,
+                    # its internal "thinking" tokens can consume the whole
+                    # response and leave message.content empty. Groq-specific
+                    # param, passed via extra_body since it's not part of the
+                    # standard OpenAI API surface.
+                    extra_body={"reasoning_format": "hidden"},
                     # Not forcing response_format=json_object here: Groq's
                     # strict JSON-mode validator is unreliable on this
                     # preview multimodal model and can reject the whole
@@ -110,7 +116,10 @@ Rules:
                     # already demands JSON-only output, so parse leniently
                     # instead (handles a stray ```json fence too).
                 )
-                raw = response.choices[0].message.content.strip()
+                raw = (response.choices[0].message.content or "").strip()
+                if not raw:
+                    finish_reason = response.choices[0].finish_reason
+                    raise ValueError(f"model returned empty content (finish_reason={finish_reason})")
                 data = json.loads(_strip_code_fence(raw))
                 return self._normalize(data)
             except Exception as exc:  # noqa: BLE001
