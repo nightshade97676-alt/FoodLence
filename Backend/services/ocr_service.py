@@ -12,7 +12,7 @@ LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr
 # NOTE: hardcoding an API key in source is not recommended for anything beyond
 # local testing — set the GEMINI_API_KEY environment variable instead so the
 # key never ends up committed to source control or shared files.
-DEFAULT_API_KEY = "AIzaSyAgumW2rbwiTf--E-GdUP-3gcIlPst6DuA"
+DEFAULT_API_KEY = "AQ.Ab8RN6Lp8zSILnpQXojcZnUPubNqk6HAlCUApB3tNj_iq40DXA"
 
 # As of mid-2026 all gemini-1.5-* and gemini-2.0-* model IDs have been shut
 # down by Google (they now return 404). "gemini-flash-latest" is a stable
