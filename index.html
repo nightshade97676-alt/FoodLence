@@ -25,20 +25,6 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* display:none is unreliable for triggering camera capture via JS
-       .click() on some mobile Safari versions — position off-screen
-       instead so the browser still treats it as a "real" clickable input. */
-    .visually-hidden-input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
   </style>
 </head>
 <!--
@@ -82,13 +68,13 @@
       <p class="font-bold" data-i18n="dropLabel">Scan Ingredient Label</p>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="dropSub">Tap to take a picture or upload a photo</p>
       <!-- Two separate inputs: capture="environment" forces the camera app
-           directly (Android especially), so it can't also be reused for
-           gallery picking or both buttons break together if the camera
-           fails to launch. Hidden off-screen rather than display:none,
-           since some mobile Safari versions won't reliably let JS .click()
-           trigger a display:none file input for camera capture. -->
-      <input type="file" id="imageInputCamera" class="visually-hidden-input" accept="image/*" capture="environment" onchange="handleFileSelected(event)">
-      <input type="file" id="imageInputGallery" class="visually-hidden-input" accept="image/*" onchange="handleFileSelected(event)">
+           directly (Android especially), so a single shared input can't
+           also be used for gallery picking. imageInputGallery deliberately
+           has NO capture attribute, which is what lets the browser offer
+           its normal photo library / file chooser instead of jumping
+           straight to the camera. -->
+      <input type="file" id="imageInputCamera" class="hidden" accept="image/*" capture="environment" onchange="handleFileSelected(event)">
+      <input type="file" id="imageInputGallery" class="hidden" accept="image/*" onchange="handleFileSelected(event)">
     </div>
 
     <div id="previewContainer" class="hidden my-4">
