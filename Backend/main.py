@@ -37,7 +37,7 @@ app.add_middleware(
 ocr_service = OCRService()
 rules_engine = RulesEngine()
 
-FRONTEND_PATH = os.path.join(THIS_DIR, "..", "Frontend", "html", "index.html")
+FRONTEND_PATH = os.path.join(THIS_DIR, "static", "index.html")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -98,14 +98,4 @@ async def analyze_food(
             "detected_ingredients": ocr_result["detected_ingredients_translated"],
             "safer_alternatives": ocr_result["safer_alternatives"],
             "safety_percentage": score_result["safety_percentage"],
-            "classification": score_result["classification"],
-            "nutri_grade": score_result["nutri_grade"],
-            "recommendations": score_result["recommendations"],
-        }
-    except Exception as exc:  # noqa: BLE001
-        return JSONResponse({"error": str(exc)}, status_code=500)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+... (11 lines left)
