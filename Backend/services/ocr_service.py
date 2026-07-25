@@ -19,6 +19,20 @@ LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr
 MODEL_CANDIDATES = ["qwen/qwen3.6-27b"]
 
 
+def _strip_code_fence(text: str) -> str:
+    """Some models wrap JSON output in ```json ... ``` even when told not
+    to. Strip that off before parsing rather than failing on it."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+        if text.lower().startswith("json"):
+            text = text[4:].strip()
+    return text
+
+
 class OCRService:
     def __init__(self, api_key: str = None):
         # No hardcoded fallback key — same reasoning as every other provider
@@ -89,10 +103,15 @@ Rules:
                             {"type": "image_url", "image_url": {"url": data_url}},
                         ],
                     }],
-                    response_format={"type": "json_object"},
+                    # Not forcing response_format=json_object here: Groq's
+                    # strict JSON-mode validator is unreliable on this
+                    # preview multimodal model and can reject the whole
+                    # response with an empty failed_generation. The prompt
+                    # already demands JSON-only output, so parse leniently
+                    # instead (handles a stray ```json fence too).
                 )
                 raw = response.choices[0].message.content.strip()
-                data = json.loads(raw)
+                data = json.loads(_strip_code_fence(raw))
                 return self._normalize(data)
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"{model_name}: {exc}")
