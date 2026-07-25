@@ -88,9 +88,9 @@ async def analyze_food(
             "high_cholesterol": high_cholesterol, "kidney_care": kidney_care,
         }
 
-        # analyze_with_gemini is a blocking (synchronous) network call — run it
+        # analyze_image is a blocking (synchronous) network call — run it
         # in a worker thread so it doesn't stall the whole event loop.
-        ocr_result = await asyncio.to_thread(ocr_service.analyze_with_gemini, image_bytes, user_profile, lang)
+        ocr_result = await asyncio.to_thread(ocr_service.analyze_image, image_bytes, user_profile, lang)
         score_result = rules_engine.analyze(ocr_result["detected_ingredients"], user_profile)
 
         return {
