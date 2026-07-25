@@ -159,6 +159,14 @@
   </div>
 
   <script>
+    // Talk to the Render backend directly when this page isn't being served
+    // by it (e.g. hosted separately on GitHub Pages). When it IS the same
+    // origin (visiting the Render URL itself), use a relative path instead
+    // so nothing breaks if the backend URL ever changes.
+    const API_BASE = window.location.hostname.endsWith('onrender.com')
+      ? ''
+      : 'https://foodlence-3.onrender.com';
+
     // ---- 24 profile fields grouped for rendering ----
     const DIETARY = ["vegan", "vegetarian", "keto", "paleo", "halal", "kosher", "gluten_free", "dairy_free"];
     const ALLERGY = ["peanuts", "tree_nuts", "milk_dairy", "eggs", "soy", "fish", "shellfish", "sesame", "wheat", "mustard"];
@@ -322,7 +330,7 @@
       });
 
       try {
-        const res = await fetch('/analyze-food', { method: 'POST', body: formData });
+        const res = await fetch(`${API_BASE}/analyze-food`, { method: 'POST', body: formData });
         const data = await res.json();
         if (data.error) { alert("Error: " + data.error); return; }
 
