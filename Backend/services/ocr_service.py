@@ -4,19 +4,19 @@ import json
 import os
 import traceback
 
-from openai import OpenAI
+import google.generativeai as genai
 from PIL import Image
 
 LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr": "French"}
 
-# Groq's OpenAI-compatible endpoint. Groq's vision-model lineup changes
-# often — meta-llama/llama-4-scout-17b-16e-instruct and
-# meta-llama/llama-4-maverick-17b-128e-instruct (the two models most
-# tutorials reference) were BOTH deprecated by Groq earlier in 2026.
-# qwen/qwen3.6-27b is the current vision-capable model as of mid-2026.
-# If this ever starts failing, check console.groq.com/docs/model for
-# whatever Groq's current vision model is and swap it in here.
-MODEL_CANDIDATES = ["qwen/qwen3.6-27b"]
+# Google's Gemini API. As of mid-2026 the current generally-available
+# workhorse multimodal model is gemini-3.5-flash (fast, cheap, natively
+# multimodal — handles the label photo directly, no separate OCR step).
+# gemini-3.1-flash-lite is kept as a fallback in case 3.5 is ever
+# rate-limited/unavailable on your key's tier.
+# If this ever starts failing, check https://ai.google.dev/gemini-api/docs/models
+# for whatever Google's current recommended flash model is and swap it in here.
+MODEL_CANDIDATES = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
 
 
 def _strip_code_fence(text: str) -> str:
@@ -35,33 +35,31 @@ def _strip_code_fence(text: str) -> str:
 
 class OCRService:
     def __init__(self, api_key: str = None):
-        # No hardcoded fallback key — same reasoning as every other provider
-        # in this project: a key baked into source is a key that leaks.
-        api_key = api_key or os.environ.get("GROQ_API_KEY")
+        # No hardcoded fallback key — a key baked into source is a key that leaks.
+        api_key = api_key or os.environ.get("GEMINI_API_KEY")
         if api_key:
             api_key = api_key.strip()  # guards against a stray copy-paste space/newline
         if not api_key:
             raise RuntimeError(
-                "GROQ_API_KEY is not set. Set it as an environment variable "
+                "GEMINI_API_KEY is not set. Set it as an environment variable "
                 "(Render: Dashboard -> your service -> Environment) rather than "
-                "hardcoding it in source. Get a free key at https://console.groq.com/keys"
+                "hardcoding it in source. Get a free key at https://aistudio.google.com/apikey"
             )
-        self.client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1", timeout=30.0)
+        genai.configure(api_key=api_key)
         self.models = MODEL_CANDIDATES
 
         # Safe diagnostic: confirms what actually got loaded without ever
         # printing the real secret — check your host's logs after a deploy
         # to verify the key isn't truncated or malformed.
         masked = f"{api_key[:4]}...{api_key[-4:]} (length {len(api_key)})" if len(api_key) > 8 else "(too short to mask safely)"
-        print(f"[OCRService] Loaded GROQ_API_KEY: {masked}")
+        print(f"[OCRService] Loaded GEMINI_API_KEY: {masked}")
 
     def analyze_image(self, image_bytes: bytes, user_profile: dict, lang: str = "en") -> dict:
         # Re-encode through PIL to normalize format/orientation before sending.
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         buf = io.BytesIO()
         image.save(buf, format="JPEG")
-        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-        data_url = f"data:image/jpeg;base64,{img_b64}"
+        jpeg_bytes = buf.getvalue()
 
         target_lang = LANGUAGES.get(lang, "English")
         active = [k.replace("_", " ").title() for k, v in user_profile.items()
@@ -91,34 +89,25 @@ Rules:
 - If the image is unreadable, return empty lists rather than guessing.
 """
 
+        image_part = {"mime_type": "image/jpeg", "data": jpeg_bytes}
+
         errors = []
         for model_name in self.models:
             try:
-                response = self.client.chat.completions.create(
-                    model=model_name,
-                    messages=[{
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": data_url}},
-                        ],
-                    }],
-                    # qwen/qwen3.6-27b is a reasoning model — without this,
-                    # its internal "thinking" tokens can consume the whole
-                    # response and leave message.content empty. Groq-specific
-                    # param, passed via extra_body since it's not part of the
-                    # standard OpenAI API surface.
-                    extra_body={"reasoning_format": "hidden"},
-                    # Not forcing response_format=json_object here: Groq's
-                    # strict JSON-mode validator is unreliable on this
-                    # preview multimodal model and can reject the whole
-                    # response with an empty failed_generation. The prompt
-                    # already demands JSON-only output, so parse leniently
-                    # instead (handles a stray ```json fence too).
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(
+                    [prompt, image_part],
+                    generation_config=genai.types.GenerationConfig(
+                        # Ask Gemini's native JSON mode for a clean parse;
+                        # we still run it through _strip_code_fence as a
+                        # belt-and-braces fallback in case a model ignores it.
+                        response_mime_type="application/json",
+                        temperature=0.2,
+                    ),
                 )
-                raw = (response.choices[0].message.content or "").strip()
+                raw = (response.text or "").strip()
                 if not raw:
-                    finish_reason = response.choices[0].finish_reason
+                    finish_reason = getattr(response.candidates[0], "finish_reason", "unknown") if response.candidates else "no candidates"
                     raise ValueError(f"model returned empty content (finish_reason={finish_reason})")
                 data = json.loads(_strip_code_fence(raw))
                 return self._normalize(data)
@@ -150,6 +139,6 @@ Rules:
             "detected_ingredients": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "detected_ingredients_translated": ["Water", "Sugar", "Wheat Flour", "Milk Powder", "Salt"],
             "safer_alternatives": [
-                f"Groq API call failed, showing placeholder data. Last error: {detail}",
+                f"Gemini API call failed, showing placeholder data. Last error: {detail}",
             ],
         }
