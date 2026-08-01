@@ -1,19 +1,23 @@
 {
   "ingredients": [
     {"canonical_name": "water", "category": "base", "is_allergen": false, "dietary_flags": []},
-    {"canonical_name": "sugar", "category": "sweetener", "is_allergen": false, "dietary_flags": ["diabetic", "keto"]},
-    {"canonical_name": "wheat flour", "category": "grain", "is_allergen": true, "dietary_flags": ["wheat", "gluten_free", "celiac_disease", "keto"]},
+    {"canonical_name": "sugar", "category": "sweetener", "is_allergen": false, "dietary_flags": ["diabetic", "keto", "weight_loss", "build_muscle", "heart_health"]},
+    {"canonical_name": "wheat flour", "category": "grain", "is_allergen": true, "dietary_flags": ["gluten_cereals", "gluten_free", "celiac_disease", "keto", "vegan_ok", "paleo"]},
     {"canonical_name": "milk", "category": "dairy", "is_allergen": true, "dietary_flags": ["milk_dairy", "vegan", "dairy_free", "lactose_intolerant"]},
     {"canonical_name": "egg", "category": "protein", "is_allergen": true, "dietary_flags": ["eggs", "vegan"]},
     {"canonical_name": "soy", "category": "protein", "is_allergen": true, "dietary_flags": ["soy"]},
     {"canonical_name": "peanut", "category": "nut", "is_allergen": true, "dietary_flags": ["peanuts", "paleo"]},
     {"canonical_name": "almond", "category": "tree_nut", "is_allergen": true, "dietary_flags": ["tree_nuts"]},
-    {"canonical_name": "salt", "category": "seasoning", "is_allergen": false, "dietary_flags": ["high_blood_pressure", "kidney_care"]},
+    {"canonical_name": "salt", "category": "seasoning", "is_allergen": false, "dietary_flags": ["high_blood_pressure", "kidney_care", "heart_health"]},
     {"canonical_name": "gelatin", "category": "thickener", "is_allergen": false, "dietary_flags": ["vegan", "vegetarian", "halal"]},
     {"canonical_name": "lard", "category": "fat", "is_allergen": false, "dietary_flags": ["vegan", "vegetarian", "halal", "kosher", "high_cholesterol"]},
     {"canonical_name": "sesame", "category": "seed", "is_allergen": true, "dietary_flags": ["sesame"]},
-    {"canonical_name": "fish", "category": "seafood", "is_allergen": true, "dietary_flags": ["fish", "vegetarian"]},
-    {"canonical_name": "shellfish", "category": "seafood", "is_allergen": true, "dietary_flags": ["shellfish", "kosher"]},
-    {"canonical_name": "mustard", "category": "seed", "is_allergen": true, "dietary_flags": ["mustard"]}
+    {"canonical_name": "fish", "category": "seafood", "is_allergen": true, "dietary_flags": ["fish", "vegan", "vegetarian"]},
+    {"canonical_name": "crab", "category": "seafood", "is_allergen": true, "dietary_flags": ["crustaceans", "vegan", "vegetarian", "kosher"]},
+    {"canonical_name": "mussel", "category": "seafood", "is_allergen": true, "dietary_flags": ["molluscs", "vegan", "vegetarian", "kosher"]},
+    {"canonical_name": "mustard", "category": "seed", "is_allergen": true, "dietary_flags": ["mustard"]},
+    {"canonical_name": "celery", "category": "vegetable", "is_allergen": true, "dietary_flags": ["celery"]},
+    {"canonical_name": "lupin flour", "category": "legume", "is_allergen": true, "dietary_flags": ["lupin"]},
+    {"canonical_name": "sulphur dioxide", "category": "preservative", "is_allergen": true, "dietary_flags": ["sulphites"]}
   ]
 }
