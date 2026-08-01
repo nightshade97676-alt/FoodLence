@@ -16,10 +16,14 @@
     "eggs": ["egg", "eggs", "egg white", "egg yolk", "albumin", "mayonnaise"],
     "soy": ["soy", "soybean", "soy sauce", "tofu", "edamame", "soy lecithin"],
     "fish": ["fish", "anchovy", "cod", "salmon", "tuna", "tilapia"],
-    "shellfish": ["shrimp", "crab", "lobster", "clam", "mussel", "oyster", "prawn", "shellfish"],
+    "crustaceans": ["shrimp", "crab", "lobster", "prawn", "crayfish", "langoustine"],
+    "molluscs": ["clam", "mussel", "oyster", "squid", "octopus", "scallop", "snail"],
     "sesame": ["sesame", "tahini", "sesame oil", "sesame seed"],
-    "wheat": ["wheat", "flour", "wheat flour", "semolina", "spelt", "durum"],
-    "mustard": ["mustard", "mustard seed", "mustard oil", "mustard powder"]
+    "gluten_cereals": ["wheat", "flour", "wheat flour", "semolina", "spelt", "durum", "barley", "rye", "malt", "oats"],
+    "celery": ["celery", "celery seed", "celery salt", "celeriac"],
+    "mustard": ["mustard", "mustard seed", "mustard oil", "mustard powder"],
+    "lupin": ["lupin", "lupin flour", "lupin bean", "lupini"],
+    "sulphites": ["sulphites", "sulfites", "sulphur dioxide", "sulfur dioxide", "sodium metabisulphite", "potassium metabisulphite"]
   },
   "health_conditions": {
     "diabetic": ["sugar", "sucrose", "glucose", "fructose", "corn syrup", "high fructose corn syrup", "dextrose", "maltose", "cane sugar", "honey"],
@@ -28,5 +32,12 @@
     "celiac_disease": ["wheat", "wheat flour", "barley", "rye", "malt", "flour", "semolina"],
     "high_cholesterol": ["trans fat", "hydrogenated oil", "partially hydrogenated oil", "lard", "palm oil", "butter", "saturated fat"],
     "kidney_care": ["sodium", "salt", "potassium chloride", "phosphate", "phosphoric acid", "monosodium glutamate"]
+  },
+  "fitness_wellness_goals": {
+    "weight_loss": ["sugar", "sucrose", "glucose", "fructose", "corn syrup", "high fructose corn syrup", "hydrogenated oil", "partially hydrogenated oil", "palm oil", "maltodextrin", "refined flour", "white flour"],
+    "build_muscle": ["sugar", "corn syrup", "high fructose corn syrup", "trans fat", "hydrogenated oil", "alcohol", "artificial sweetener"],
+    "gut_health": ["high fructose corn syrup", "artificial sweetener", "aspartame", "sucralose", "carrageenan", "polysorbate 80", "msg", "monosodium glutamate", "sodium benzoate", "artificial preservative"],
+    "heart_health": ["sodium", "salt", "trans fat", "hydrogenated oil", "partially hydrogenated oil", "saturated fat", "palm oil", "sugar", "msg", "monosodium glutamate"],
+    "clean_eating": ["artificial color", "artificial flavor", "artificial flavour", "msg", "monosodium glutamate", "high fructose corn syrup", "sodium benzoate", "bha", "bht", "artificial sweetener", "hydrogenated oil", "preservative"]
   }
 }
