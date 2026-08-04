@@ -10,9 +10,7 @@ import asyncio
 import os
 import sys
 
-# Make sure this script's own directory is importable regardless of the
-# working directory it's launched from (fixes ModuleNotFoundError for
-# "services" / "rules" when run via `python -m Backend.main`, `uvicorn`, etc.)
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 if THIS_DIR not in sys.path:
     sys.path.insert(0, THIS_DIR)
