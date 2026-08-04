@@ -9,12 +9,6 @@ def _load_json(path: str) -> dict:
     return {}
 
 
-# Plain substring matching is prone to false positives when a short keyword
-# is embedded in an unrelated compound term — e.g. the dairy keyword
-# "butter" also appears inside "cocoa butter" and "shea butter", and "milk"
-# appears inside "coconut milk". Whenever one of these keywords is checked,
-# any of its listed exception phrases are stripped out of the ingredient
-# text first, so the keyword can no longer match inside them.
 EXCEPTION_PHRASES = {
     "butter": ["cocoa butter", "cacao butter", "shea butter", "mango butter",
                "illipe butter", "cashew butter", "almond butter",
