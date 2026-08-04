@@ -9,13 +9,7 @@ from PIL import Image
 
 LANGUAGES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "es": "Spanish", "fr": "French"}
 
-# Google's Gemini API. As of mid-2026 the current generally-available
-# workhorse multimodal model is gemini-3.5-flash (fast, cheap, natively
-# multimodal — handles the label photo directly, no separate OCR step).
-# gemini-3.1-flash-lite is kept as a fallback in case 3.5 is ever
-# rate-limited/unavailable on your key's tier.
-# If this ever starts failing, check https://ai.google.dev/gemini-api/docs/models
-# for whatever Google's current recommended flash model is and swap it in here.
+
 MODEL_CANDIDATES = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
 
 
