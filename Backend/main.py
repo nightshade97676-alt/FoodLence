@@ -1,11 +1,4 @@
-"""
-Food Lens backend.
 
-Run this file directly with:
-    python main.py
-from inside the Backend/ folder — see README / chat instructions for the
-full setup steps (venv + pip install + run).
-"""
 import asyncio
 import os
 import sys
