@@ -17,23 +17,25 @@ LANGUAGES = {
 }
 
 
-# Use models supported by the new google-genai SDK.
+# Current Gemini model
 MODEL_CANDIDATES = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
+    "gemini-3.8-flash",
 ]
 
 
 def _strip_code_fence(text: str) -> str:
     """
-    Some models may return JSON inside ```json ... ``` even when
-    instructed not to. Remove the code fence before parsing.
+    Removes ```json ... ``` if Gemini returns JSON
+    inside a markdown code block.
     """
 
     text = text.strip()
 
     if text.startswith("```"):
-        text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+        if "\n" in text:
+            text = text.split("\n", 1)[1]
+        else:
+            text = text[3:]
 
         if text.endswith("```"):
             text = text[:-3]
@@ -50,7 +52,10 @@ class OCRService:
 
     def __init__(self, api_key: str = None):
 
-        # Get the API key from the parameter or environment variable.
+        # ---------------------------------------------------------
+        # GET GEMINI API KEY
+        # ---------------------------------------------------------
+
         api_key = api_key or os.environ.get("GEMINI_API_KEY")
 
         if api_key:
@@ -59,17 +64,21 @@ class OCRService:
         if not api_key:
             raise RuntimeError(
                 "GEMINI_API_KEY is not set. "
-                "Set it as an environment variable "
-                "(Render: Dashboard -> your service -> Environment) "
-                "instead of hardcoding it in source."
+                "Add GEMINI_API_KEY in Render Environment Variables."
             )
 
-       
-        self.client = genai.Client(api_key=api_key)
+        # ---------------------------------------------------------
+        # CREATE GEMINI CLIENT
+        # ---------------------------------------------------------
+
+        self.client = genai.Client(
+            api_key=api_key
+        )
 
         self.models = MODEL_CANDIDATES
 
-
+        # Safe diagnostic.
+        # NEVER print the complete API key.
         if len(api_key) > 8:
             masked = (
                 f"{api_key[:4]}..."
@@ -77,11 +86,15 @@ class OCRService:
                 f" (length {len(api_key)})"
             )
         else:
-            masked = "(too short to mask safely)"
+            masked = "(key too short)"
 
         print(
-            f"[OCRService] Loaded GEMINI_API_KEY: {masked}"
+            f"[OCRService] GEMINI_API_KEY loaded: {masked}"
         )
+
+    # =========================================================
+    # ANALYZE IMAGE
+    # =========================================================
 
     def analyze_image(
         self,
@@ -90,24 +103,30 @@ class OCRService:
         lang: str = "en"
     ) -> dict:
 
-   
+        # ---------------------------------------------------------
+        # 1. OPEN IMAGE
+        # ---------------------------------------------------------
 
         image = Image.open(
             io.BytesIO(image_bytes)
         ).convert("RGB")
 
-       
-        buf = io.BytesIO()
+        # ---------------------------------------------------------
+        # 2. CONVERT IMAGE TO JPEG
+        # ---------------------------------------------------------
+
+        buffer = io.BytesIO()
 
         image.save(
-            buf,
-            format="JPEG"
+            buffer,
+            format="JPEG",
+            quality=95
         )
 
-        jpeg_bytes = buf.getvalue()
+        jpeg_bytes = buffer.getvalue()
 
         # ---------------------------------------------------------
-        # 2. Determine requested language
+        # 3. LANGUAGE
         # ---------------------------------------------------------
 
         target_lang = LANGUAGES.get(
@@ -116,84 +135,127 @@ class OCRService:
         )
 
         # ---------------------------------------------------------
-        # 3. Get selected user restrictions
+        # 4. USER RESTRICTIONS
         # ---------------------------------------------------------
 
-        active = [
-            k.replace("_", " ").title()
-            for k, v in user_profile.items()
-            if v is True
-            and k not in ("age", "weight")
-        ]
+        active_restrictions = []
 
-        restrictions_str = (
-            ", ".join(active)
-            if active
-            else "None (general health assessment only)"
-        )
+        for key, value in user_profile.items():
+
+            if (
+                value is True
+                and key not in ("age", "weight")
+            ):
+                active_restrictions.append(
+                    key.replace("_", " ").title()
+                )
+
+        if active_restrictions:
+            restrictions_str = ", ".join(
+                active_restrictions
+            )
+        else:
+            restrictions_str = (
+                "None "
+                "(general health assessment only)"
+            )
 
         # ---------------------------------------------------------
-        # 4. Gemini prompt
+        # 5. GEMINI PROMPT
         # ---------------------------------------------------------
 
         prompt = f"""
 You are an OCR and ingredient-extraction assistant
-for a food label scanner.
+for a food label scanner called Food Lens.
 
-Look at the attached food label photo and read every
-ingredient listed.
+Look carefully at the attached food label image.
+
+Read the product name and every ingredient that can
+actually be seen on the label.
 
 USER'S SELECTED HEALTH/DIETARY RESTRICTIONS:
+
 {restrictions_str}
+
+The user wants the final display language to be:
+
+{target_lang}
 
 Return ONLY valid JSON.
 
-Do not return markdown.
-Do not return ```json.
-Do not return explanations.
-Do not return any text outside the JSON.
+Do NOT return markdown.
 
-Use this exact schema:
+Do NOT return ```json.
+
+Do NOT add explanations outside the JSON.
+
+Use EXACTLY this JSON structure:
 
 {{
-  "product_name": "product name in English",
-  "product_name_translated": "product name translated into {target_lang}",
-  "detected_ingredients": [
-    "ingredient 1 in English",
-    "ingredient 2 in English"
-  ],
-  "detected_ingredients_translated": [
-    "ingredient 1 in {target_lang}",
-    "ingredient 2 in {target_lang}"
-  ],
-  "safer_alternatives": [
-    "alternative product 1 in {target_lang}",
-    "alternative product 2 in {target_lang}"
-  ]
+    "product_name": "product name in English",
+
+    "product_name_translated":
+        "product name translated into {target_lang}",
+
+    "detected_ingredients": [
+        "ingredient 1 in English",
+        "ingredient 2 in English"
+    ],
+
+    "detected_ingredients_translated": [
+        "ingredient 1 in {target_lang}",
+        "ingredient 2 in {target_lang}"
+    ],
+
+    "safer_alternatives": [
+        "alternative product 1 in {target_lang}",
+        "alternative product 2 in {target_lang}",
+        "alternative product 3 in {target_lang}"
+    ]
 }}
 
-Rules:
+IMPORTANT RULES:
 
-- "detected_ingredients" MUST stay in English.
-- The English ingredient list is used by the automated
-  Food Lens rule-matching system.
-- "detected_ingredients_translated" must contain the
-  same ingredients translated into {target_lang}.
-- If no restrictions were selected, still extract
-  the ingredients normally.
-- Suggest 2-3 realistic healthier packaged-food
-  alternatives for "safer_alternatives".
-- If the image is unreadable, return empty ingredient
-  lists rather than guessing.
-- Do not invent ingredients that cannot be read.
+1. "detected_ingredients" MUST be in English.
+
+2. The English ingredient list is used by the
+   Food Lens automated rules engine.
+
+3. "detected_ingredients_translated" must contain
+   the SAME ingredients translated into {target_lang}.
+
+4. Do not invent ingredients.
+
+5. If an ingredient cannot be read clearly,
+   do not guess it.
+
+6. If the image is completely unreadable,
+   return empty ingredient lists.
+
+7. Suggest 2-3 realistic healthier packaged-food
+   alternatives.
+
+8. The alternatives must be written in {target_lang}.
+
+9. The product name should remain in English in
+   "product_name".
+
+10. The translated product name must be in
+    {target_lang}.
 """
+
+        # ---------------------------------------------------------
+        # 6. IMAGE FOR GEMINI
+        # ---------------------------------------------------------
 
         image_part = types.Part.from_bytes(
             data=jpeg_bytes,
             mime_type="image/jpeg"
         )
 
-       
+        # ---------------------------------------------------------
+        # 7. CALL GEMINI
+        # ---------------------------------------------------------
 
         errors = []
 
@@ -202,24 +264,31 @@ Rules:
             try:
 
                 print(
-                    f"[OCRService] Trying model: {model_name}"
+                    f"[OCRService] Calling Gemini model: "
+                    f"{model_name}"
                 )
 
-                # NEW google-genai SDK call
                 response = self.client.models.generate_content(
                     model=model_name,
+
                     contents=[
                         prompt,
-                        image_part,
+                        image_part
                     ],
+
                     config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
                         temperature=0.2,
+                        response_mime_type="application/json",
                     ),
                 )
 
-              
-                raw = (response.text or "").strip()
+                # -------------------------------------------------
+                # 8. GET RESPONSE TEXT
+                # -------------------------------------------------
+
+                raw = (
+                    response.text or ""
+                ).strip()
 
                 if not raw:
 
@@ -236,23 +305,38 @@ Rules:
                         pass
 
                     raise ValueError(
-                        "Model returned empty content "
-                        f"(finish_reason={finish_reason})"
+                        "Gemini returned empty content. "
+                        f"Finish reason: {finish_reason}"
                     )
 
                 print(
-                    f"[OCRService] Model {model_name} "
-                    "returned a response."
+                    f"[OCRService] Gemini response received "
+                    f"from {model_name}"
                 )
 
+                # -------------------------------------------------
+                # 9. CLEAN JSON
+                # -------------------------------------------------
 
+                cleaned = _strip_code_fence(
+                    raw
+                )
 
-                cleaned = _strip_code_fence(raw)
+                # -------------------------------------------------
+                # 10. PARSE JSON
+                # -------------------------------------------------
 
-                data = json.loads(cleaned)
+                data = json.loads(
+                    cleaned
+                )
 
-               
-                return self._normalize(data)
+                # -------------------------------------------------
+                # 11. NORMALIZE
+                # -------------------------------------------------
+
+                return self._normalize(
+                    data
+                )
 
             except Exception as exc:
 
@@ -260,10 +344,12 @@ Rules:
                     f"{model_name}: {exc}"
                 )
 
-                errors.append(error_message)
+                errors.append(
+                    error_message
+                )
 
                 print(
-                    f"[OCRService] Model "
+                    f"[OCRService] Gemini model "
                     f"'{model_name}' failed:"
                 )
 
@@ -271,21 +357,34 @@ Rules:
                     traceback.format_exc()
                 )
 
-                # Try the next model.
+                # Try next model if one exists.
                 continue
 
+        # ---------------------------------------------------------
+        # 12. ALL MODELS FAILED
+        # ---------------------------------------------------------
 
         print(
-            "[OCRService] All Gemini models failed:"
+            "[OCRService] All Gemini models failed."
         )
 
         for error in errors:
-            print(error)
+            print(
+                f"[OCRService] {error}"
+            )
 
-        return self._fallback(errors)
+        return self._fallback(
+            errors
+        )
+
+    # =========================================================
+    # NORMALIZE GEMINI RESULT
+    # =========================================================
 
     @staticmethod
-    def _normalize(data: dict) -> dict:
+    def _normalize(
+        data: dict
+    ) -> dict:
 
         data.setdefault(
             "product_name",
@@ -314,16 +413,19 @@ Rules:
 
         return data
 
-   
+    # =========================================================
+    # FALLBACK
+    # =========================================================
 
     @staticmethod
-    def _fallback(errors: list) -> dict:
+    def _fallback(
+        errors: list
+    ) -> dict:
 
-        detail = (
-            errors[-1]
-            if errors
-            else "Unknown error"
-        )
+        if errors:
+            detail = errors[-1]
+        else:
+            detail = "Unknown Gemini API error"
 
         return {
             "product_name":
@@ -337,7 +439,7 @@ Rules:
                 "Sugar",
                 "Wheat Flour",
                 "Milk Powder",
-                "Salt",
+                "Salt"
             ],
 
             "detected_ingredients_translated": [
@@ -345,11 +447,11 @@ Rules:
                 "Sugar",
                 "Wheat Flour",
                 "Milk Powder",
-                "Salt",
+                "Salt"
             ],
 
             "safer_alternatives": [
-                "Gemini API call failed, showing placeholder "
-                f"data. Last error: {detail}"
-            ],
+                "Gemini API call failed. "
+                f"Last error: {detail}"
+            ]
         }
